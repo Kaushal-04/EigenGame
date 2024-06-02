@@ -51,13 +51,18 @@ void deleteColumn(MatrixXd& matrix, int columnIndex) {
     }
     matrix.conservativeResize(matrix.rows(), matrix.cols() - 1);
 }
+MatrixXd selectRandomColumn(const MatrixXd& matrix) {
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<int> dis(0, matrix.cols() - 1);
+    int columnIndex = dis(gen);
+    return matrix.col(columnIndex);
+}
 int main(){
     setValueOfn();
     MatrixXd randomMatrixA , randomMatrixB;
     randomMatrixA.setRandom(n,n);
     randomMatrixB.setRandom(n,n);
-   // cout<<"MAtrix A:\n"<<randomMatrixA<<endl;
-   // cout<<"Matrix B:\n"<<randomMatrixB<<endl;
     MatrixXd symmetricMatrixA = makeSymmetric(randomMatrixA);
     MatrixXd symmetricMatrixB = makeSymmetric(randomMatrixB);
     //cout << "Symmetric Matrix A:\n" << symmetricMatrixA << endl;
@@ -109,6 +114,11 @@ int main(){
     MatrixXd PenARes , PenBRes , diffRes;
 // for (int j = 0; j < T; j++) {
 //     for (int i = 0; i < n; i++) { 
+        MatrixXd vi = selectRandomColumn(EigenVector);
+        MatrixXd vj = selectRandomColumn(EigenVector);
+        cout<<"Vi\n"<<vi<<endl;
+        cout<<"Vj\n"<<vj<<endl;
+
         demo = eigenVectorB.transpose() * symmetricMatrixB * eigenVectorB;
         demo=demo.inverse();
         yj=eigenVectorB * demo ;
