@@ -33,17 +33,35 @@ MatrixXd normalizeEigenVector(const MatrixXd& eigenVector) {
     double magnitude = eigenVector.norm(); // Compute the magnitude
     return eigenVector / magnitude; // Normalize by dividing each component by the magnitude
 }
+void insertColumnMatrix(MatrixXd& originalMatrix, const MatrixXd& columnMatrix) {
+    if (columnMatrix.rows() != originalMatrix.rows()) {
+        cerr << "Error: Dimensions of the column matrix do not match the number of rows in the original matrix." << std::endl;
+        return;
+    }
+    originalMatrix.conservativeResize(originalMatrix.rows(), originalMatrix.cols() + columnMatrix.cols());
+    originalMatrix.rightCols(columnMatrix.cols()) = columnMatrix;
+}
+void deleteColumn(MatrixXd& matrix, int columnIndex) {
+    if (columnIndex < 0 || columnIndex >= matrix.cols()) {
+        cerr << "Error: Column index out of bounds." << endl;
+        return;
+    }
+    for (int i = columnIndex; i < matrix.cols() - 1; ++i) {
+        matrix.col(i) = matrix.col(i + 1);
+    }
+    matrix.conservativeResize(matrix.rows(), matrix.cols() - 1);
+}
 int main(){
     setValueOfn();
     MatrixXd randomMatrixA , randomMatrixB;
     randomMatrixA.setRandom(n,n);
     randomMatrixB.setRandom(n,n);
-    cout<<"MAtrix A:\n"<<randomMatrixA<<endl;
-    cout<<"Matrix B:\n"<<randomMatrixB<<endl;
+   // cout<<"MAtrix A:\n"<<randomMatrixA<<endl;
+   // cout<<"Matrix B:\n"<<randomMatrixB<<endl;
     MatrixXd symmetricMatrixA = makeSymmetric(randomMatrixA);
     MatrixXd symmetricMatrixB = makeSymmetric(randomMatrixB);
-    cout << "Symmetric Matrix A:\n" << symmetricMatrixA << endl;
-    cout << "Symmetric Matrix B:\n" << symmetricMatrixB << endl;
+    //cout << "Symmetric Matrix A:\n" << symmetricMatrixA << endl;
+    //cout << "Symmetric Matrix B:\n" << symmetricMatrixB << endl;
     //Create <double> , dynamic matrix
     MatrixXcd eigenValMatA , eigenValMatB;
     MatrixXcd eigenVectMatA , eigenVectMatB;
@@ -54,8 +72,15 @@ int main(){
     eigenValMatB=eigenValueSolverB.eigenvalues();
     eigenVectMatA=eigenValueSolverA.eigenvectors();
     eigenVectMatB=eigenValueSolverB.eigenvectors();
-    cout<<"eigenValMatA:\n"<<eigenValMatA<<endl;
-    cout<<"eigenVectMatA:\n"<<eigenVectMatA<<endl;
+    //cout<<"eigenValMatA:\n"<<eigenValMatA<<endl;
+    //cout<<"eigenVectMatA:\n"<<eigenVectMatA<<endl;
+
+    MatrixXd EigenVector(3,1);
+    insertColumnMatrix(EigenVector , eigenVectMatA.real());
+    insertColumnMatrix(EigenVector , eigenVectMatB.real());
+    deleteColumn(EigenVector , 0);
+    cout<<"Eigen Vector Matrix:\n"<<EigenVector<<endl;
+
     //Select a random eigen vector
     MatrixXcd randomEigenVectA = getRandomEigenVector(eigenVectMatA);
     MatrixXcd randomEigenVectB = getRandomEigenVector(eigenVectMatB);
