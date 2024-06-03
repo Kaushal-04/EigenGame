@@ -65,6 +65,7 @@ MatrixXd selectRandomColumn(const MatrixXd& matrix) {
 }
 int main(){
     setValueOfn();
+    MatrixXd FinalEigenVector(3,1);
     MatrixXd randomMatrixA , randomMatrixB;
     randomMatrixA.setRandom(n,n);
     randomMatrixA = randomMatrixA.array().abs(); // Ensure positive values
@@ -147,8 +148,20 @@ for (int j = 0; j < 1; j++) {  // loop to T
             diffRes = PenARes - PenBRes;
             Penalties = Penalties + (PenAScal * diffRes);
             cout<<"Penalties \n"<<Penalties<<endl;
+            MatrixXd delta(3,1);
+            delta = Reward - Penalties;
+            MatrixXd itadelta(3,1);
+            itadelta = -2 * delta;
+            MatrixXd wi(3,1);
+            wi = vi + itadelta;
+            cout<<"wi\n"<<wi<<endl;
+            vi = normalizeVector(wi);
+            cout<<"New Vi\n"<<vi <<endl;
+            insertColumnMatrix(FinalEigenVector , vi);
         // }
         }
     }
+    deleteColumn(FinalEigenVector , 0);
+    cout<<"Final Eigen Vector:\n"<<FinalEigenVector<<endl;
     return 0;
 }
