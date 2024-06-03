@@ -29,9 +29,14 @@ MatrixXcd getRandomEigenVector(const MatrixXcd& eigenVectMat) {
     int randomIndex = distrib(gen);
     return eigenVectMat.col(randomIndex);
 }
-MatrixXd normalizeEigenVector(const MatrixXd& eigenVector) {
-    double magnitude = eigenVector.norm(); // Compute the magnitude
-    return eigenVector / magnitude; // Normalize by dividing each component by the magnitude
+MatrixXd normalizeVector(const MatrixXd& vect) {
+    double norm = vect.norm();
+    // Check if the norm is zero to avoid division by zero
+    if (norm == 0) {
+        return vect;
+    } else {
+        return vect / norm;
+    }
 }
 void insertColumnMatrix(MatrixXd& originalMatrix, const MatrixXd& columnMatrix) {
     if (columnMatrix.rows() != originalMatrix.rows()) {
