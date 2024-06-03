@@ -67,7 +67,11 @@ int main(){
     setValueOfn();
     MatrixXd randomMatrixA , randomMatrixB;
     randomMatrixA.setRandom(n,n);
+    randomMatrixA = randomMatrixA.array().abs(); // Ensure positive values
     randomMatrixB.setRandom(n,n);
+    randomMatrixB = randomMatrixB.array().abs(); // Ensure positive values
+    cout<<"MAtrix A:\n"<<randomMatrixA<<endl;
+    cout<<"Matrix B:\n"<<randomMatrixB<<endl;
     MatrixXd symmetricMatrixA = makeSymmetric(randomMatrixA);
     MatrixXd symmetricMatrixB = makeSymmetric(randomMatrixB);
     //cout << "Symmetric Matrix A:\n" << symmetricMatrixA << endl;
@@ -82,73 +86,69 @@ int main(){
     eigenValMatB=eigenValueSolverB.eigenvalues();
     eigenVectMatA=eigenValueSolverA.eigenvectors();
     eigenVectMatB=eigenValueSolverB.eigenvectors();
-    //cout<<"eigenValMatA:\n"<<eigenValMatA<<endl;
-    //cout<<"eigenVectMatA:\n"<<eigenVectMatA<<endl;
-
+    
     MatrixXd EigenVector(3,1);
     insertColumnMatrix(EigenVector , eigenVectMatA.real());
     insertColumnMatrix(EigenVector , eigenVectMatB.real());
     deleteColumn(EigenVector , 0);
     cout<<"Eigen Vector Matrix:\n"<<EigenVector<<endl;
 
-    //Select a random eigen vector
-    MatrixXcd randomEigenVectA = getRandomEigenVector(eigenVectMatA);
-    MatrixXcd randomEigenVectB = getRandomEigenVector(eigenVectMatB);
-    //Separate real parts of eigen vectors
-    MatrixXd eigenVectorA , eigenVectorB;
-    eigenVectorA=randomEigenVectA.real();
-    eigenVectorB=randomEigenVectB.real();  
-    // cout<<eigenVectorA<<endl;
-    eigenVectorA=normalizeEigenVector(eigenVectorA);
-    eigenVectorB=normalizeEigenVector(eigenVectorB);
-    cout<<"Random Eigen Vector from A:\n";
-    cout<<eigenVectorA<<endl;
-    cout<<eigenVectorA.size()<<endl;
     int T=3;  //just for checking otherwise set vale to 10001
-    MatrixXd yj;
-    MatrixXd demo;
     MatrixXd Reward;
     MatrixXd operation(n, n);
     MatrixXd result;
     MatrixXd rewCala , rewCalaR , rewResl, rewCalb , rewCalbR , rewResR;
-    MatrixXd Penalties(3,1);
-    Penalties << 0,0,0;
-    MatrixXd PenA , PenB , PenC , PenVecA , PenVecB;
     double PenAScal, PenBScal , PenCScal;
     double rewa , rewb;
-    MatrixXd PenARes , PenBRes , diffRes;
-// for (int j = 0; j < T; j++) {
-//     for (int i = 0; i < n; i++) { 
+for (int j = 0; j < 1; j++) {  // loop to T
+    for (int i = 0; i < 1; i++) {  // loop to k or n
         MatrixXd vi = selectRandomColumn(EigenVector);
         MatrixXd vj = selectRandomColumn(EigenVector);
+        vi = normalizeVector(vi);
         cout<<"Vi\n"<<vi<<endl;
         cout<<"Vj\n"<<vj<<endl;
-
-        demo = eigenVectorB.transpose() * symmetricMatrixB * eigenVectorB;
-        demo=demo.inverse();
-        yj=eigenVectorB * demo ;
-        rewCala=eigenVectorA.transpose() * symmetricMatrixB * eigenVectorA;
+        double result = (vj.transpose() * symmetricMatrixB * vj)(0, 0);
+        cout<<"Result:"<<result<<endl;
+        double sqrtResult = sqrt(result);
+        //why nan (Not a number is encountered
+        sqrtResult = 1.0 /sqrtResult;
+        cout<<"Square Root : "<<sqrtResult<<endl;
+        //double demoInverse = 1.0 / sqrtResult;
+        //yj = vj * demoInverse ;
+        MatrixXd yj;
+        yj = vj / sqrtResult;
+        cout<<"yj\n"<<yj<<endl;
+        rewCala= vi.transpose() * symmetricMatrixB * vi;
         rewa=rewCala(0,0);
-        rewCalaR=symmetricMatrixA * eigenVectorA;
-        rewCalb=eigenVectorA.transpose() * symmetricMatrixA * eigenVectorA;
+        rewCalaR=symmetricMatrixA * vi;
+        rewCalb=vi.transpose() * symmetricMatrixA * vi;
         rewb=rewCalb(0,0);
-        rewCalbR=symmetricMatrixB * eigenVectorA;
+        rewCalbR=symmetricMatrixB * vi;
         rewResl=rewCalaR * rewa;
         rewResR=rewCalbR * rewb;
         Reward=rewResl - rewResR;
+        cout<<"Reward:\n"<<Reward<<endl;
         //while(j < i){  Think on it
-            PenA = eigenVectorA.transpose() * symmetricMatrixA * yj;
+            MatrixXd PenARes , PenBRes , diffRes;
+            MatrixXd Penalties(3,1);
+            Penalties << 0,0,0;
+            MatrixXd PenA , PenB , PenC , PenVecA , PenVecB;
+           PenA = vi.transpose() * symmetricMatrixA * yj;
             PenAScal=PenA(0,0);
-            PenB = eigenVectorA.transpose() * symmetricMatrixB * eigenVectorA ;
+            cout<<"PenA : "<<PenA<<endl;
+            PenB = vi.transpose() * symmetricMatrixB * vi ;
             PenBScal = PenB(0,0);
-            PenC = eigenVectorA.transpose() * symmetricMatrixB * yj ;
+            PenC = vi.transpose() * symmetricMatrixB * yj ;
             PenCScal = PenC(0,0);
             PenVecA = symmetricMatrixB * yj;
-            PenVecB = symmetricMatrixB * eigenVectorA;
+            PenVecB = symmetricMatrixB * vi;
             PenARes = PenBScal * PenVecA;
             PenBRes = PenCScal * PenVecB;
             diffRes = PenARes - PenBRes;
             Penalties = Penalties + (PenAScal * diffRes);
+            cout<<"Penalties \n"<<Penalties<<endl;
         // }
+        }
+    }
     return 0;
 }
