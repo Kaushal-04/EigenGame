@@ -5,6 +5,8 @@
 #include<random>
 #include<cmath>
 #include<math.h>
+#include <cstdlib> // For rand() and srand()
+#include <ctime>   // For time()
 using namespace std;
 using namespace Eigen;
 #define MAX_SIZE 10000
@@ -17,35 +19,26 @@ void setValueOfn(){
         n = MAX_SIZE;
     }
 }
-MatrixXd makeSymmetric(const MatrixXd& A) {
+MatrixXf makeSymmetric(const MatrixXf& A) {
     return 0.5 * (A + A.transpose());
 }
-MatrixXcd getRandomEigenVector(const MatrixXcd& eigenVectMat) {
-    // Get the number of eigen vectors
-    int numEigenVec = eigenVectMat.cols();
-    random_device rd; 
-    mt19937 gen(rd()); 
-    uniform_int_distribution<> distrib(0, numEigenVec - 1); // Define the range
-    int randomIndex = distrib(gen);
-    return eigenVectMat.col(randomIndex);
-}
-MatrixXd normalizeVector(const MatrixXd& vect) {
-    MatrixXd normalizedVector = vect; 
-    double maxElement = vect.maxCoeff();
+MatrixXf normalizeVector(const MatrixXf& vect) {
+    MatrixXf normalizedVector = vect;
+    float maxElement = vect.maxCoeff();
     for (int i = 0; i < vect.size(); ++i) {
         normalizedVector(i) /= maxElement;
     }
     return normalizedVector;
 }
-void insertColumnMatrix(MatrixXd& originalMatrix, const MatrixXd& columnMatrix) {
+void insertColumnMatrix(MatrixXf& originalMatrix, const MatrixXf& columnMatrix) {
     if (columnMatrix.rows() != originalMatrix.rows()) {
-        cerr << "Error: Dimensions of the column matrix do not match the number of rows in the original matrix." << std::endl;
+        cerr << "Dimention of Column & Rows not match" <<endl;
         return;
     }
     originalMatrix.conservativeResize(originalMatrix.rows(), originalMatrix.cols() + columnMatrix.cols());
     originalMatrix.rightCols(columnMatrix.cols()) = columnMatrix;
 }
-void deleteColumn(MatrixXd& matrix, int columnIndex) {
+void deleteColumn(MatrixXf& matrix, int columnIndex) {
     if (columnIndex < 0 || columnIndex >= matrix.cols()) {
         cerr << "Error: Column index out of bounds." << endl;
         return;
@@ -55,93 +48,67 @@ void deleteColumn(MatrixXd& matrix, int columnIndex) {
     }
     matrix.conservativeResize(matrix.rows(), matrix.cols() - 1);
 }
-MatrixXd selectRandomColumn(const MatrixXd& matrix) {
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_int_distribution<int> dis(0, matrix.cols() - 1);
-    int columnIndex = dis(gen);
-    return matrix.col(columnIndex);
-}
-MatrixXd eigenValues(const MatrixXd& eigenvectors) {
-    SelfAdjointEigenSolver<MatrixXd> solver(eigenvectors.transpose() * eigenvectors);
+MatrixXf eigenValues(const MatrixXf& eigenvectors) {
+    SelfAdjointEigenSolver<MatrixXf> solver(eigenvectors.transpose() * eigenvectors);
     return solver.eigenvalues();
 }
 int main(){
     setValueOfn();
-    MatrixXd FinalEigenVector(3,1);
-    MatrixXd randomMatrixA , randomMatrixB;
+    srand(time(0));
+    MatrixXf FinalEigenVector(n,1);
+    MatrixXf randomMatrixA , randomMatrixB;
     randomMatrixA.setRandom(n,n);
     randomMatrixA = randomMatrixA.array().abs(); // Ensure positive values
     randomMatrixB.setRandom(n,n);
     randomMatrixB = randomMatrixB.array().abs(); // Ensure positive values
     //cout<<"MAtrix A:\n"<<randomMatrixA<<endl;
     //cout<<"Matrix B:\n"<<randomMatrixB<<endl;
-    // MatrixXd symmetricMatrixA = makeSymmetric(randomMatrixA);
-    // MatrixXd symmetricMatrixB = makeSymmetric(randomMatrixB);
+    MatrixXf symmetricMatrixA = makeSymmetric(randomMatrixA);
+    MatrixXf symmetricMatrixB = makeSymmetric(randomMatrixB);
+    cout << "Symmetric Matrix A:\n" << symmetricMatrixA << endl;
+    cout << "Symmetric Matrix B:\n" << symmetricMatrixB << endl;
 
-    MatrixXd symmetricMatrixA(3,3);
-    symmetricMatrixA<< 1,2,3,
-                        7,8,9,
-                        4,5,6;
-    MatrixXd symmetricMatrixB = makeSymmetric(randomMatrixB);
-
-    //cout << "Symmetric Matrix A:\n" << symmetricMatrixA << endl;
-    //cout << "Symmetric Matrix B:\n" << symmetricMatrixB << endl;
-    //Create <double> , dynamic matrix
-    MatrixXcd eigenValMatA , eigenValMatB;
-    MatrixXcd eigenVectMatA , eigenVectMatB;
-    //Finding EigenValues and Eigen vectors
-    EigenSolver<MatrixXd> eigenValueSolverA(symmetricMatrixA);
-    EigenSolver<MatrixXd> eigenValueSolverB(symmetricMatrixB);
+    //Create <float> , dynamic matrix   & Finding EigenValues and Eigen vectors
+    MatrixXcf eigenValMatA , eigenValMatB;
+    MatrixXcf eigenVectMatA , eigenVectMatB;
+    EigenSolver<MatrixXf> eigenValueSolverA(symmetricMatrixA);
+    EigenSolver<MatrixXf> eigenValueSolverB(symmetricMatrixB);
     eigenValMatA=eigenValueSolverA.eigenvalues();
-    cout<<"Symmetric Matrix:\n"<<symmetricMatrixA<<endl;
-    cout<<"Eigen Value A:\n"<<eigenValMatA.real()<<endl;
-    eigenVectMatA=eigenValueSolverA.eigenvectors();
-    cout<<"Eigen Vector Matrix A:\n"<<eigenVectMatA.real()<<endl;
-    MatrixXd eigenVectTemp = eigenVectMatA.real();
-    for(int i=0; i<eigenVectTemp.cols(); i++){
-        eigenVectTemp.col(i) = normalizeVector(eigenVectTemp.col(i));
-    }
-    cout<<"Normalize Eigen Vector:\n"<<eigenVectTemp<<endl; 
-    return 0;
-
-
-
     eigenValMatB=eigenValueSolverB.eigenvalues();
+    eigenVectMatA=eigenValueSolverA.eigenvectors();
     eigenVectMatB=eigenValueSolverB.eigenvectors();
-    
-    MatrixXd EigenVector(3,1);
+
+    MatrixXf EigenVector(n,1);
     insertColumnMatrix(EigenVector , eigenVectMatA.real());
     insertColumnMatrix(EigenVector , eigenVectMatB.real());
     deleteColumn(EigenVector , 0);
-    //cout<<"Eigen Vector Matrix:\n"<<EigenVector<<endl;
+    for (int column = 0; column < EigenVector.cols(); ++column) {
+        EigenVector.col(column) = normalizeVector(EigenVector.col(column));
+    }
 
-    int T=1;  //just for checking otherwise set vale to 10001
-    MatrixXd Reward;
-    MatrixXd operation(n, n);
-    MatrixXd result;
-    MatrixXd rewCala , rewCalaR , rewResl, rewCalb , rewCalbR , rewResR;
-    double PenAScal, PenBScal , PenCScal;
-    double rewa , rewb;
-for (int j = 0; j < T; j++) {  // loop to T
-    for (int i = 0; i < 2; i++) {  // loop to k or n
-        MatrixXd vi = selectRandomColumn(EigenVector);
-        MatrixXd vj = selectRandomColumn(EigenVector);
-        vi = normalizeVector(vi);
-        vj = normalizeVector(vj);
-        //cout<<"Vi\n"<<vi<<endl;
-        //cout<<"Vj\n"<<vj<<endl;
-        double result = (vj.transpose() * symmetricMatrixB * vj)(0, 0);
-        //cout<<"Result:"<<result<<endl;
-        double sqrtResult = sqrt(result);
-        //why nan (Not a number is encountered
+    int T=3;  //just for checking otherwise set vale to 10001
+    MatrixXf Reward;
+    MatrixXf operation(n, n);
+    MatrixXf result;
+    MatrixXf rewCala , rewCalaR , rewResl, rewCalb , rewCalbR , rewResR;
+    float rewa , rewb;
+    int colNum;
+    MatrixXf vi , vj;
+ for (int j = 0; j < T; j++) { //T
+     for (int i = 0; i < n; i++) {  //n or k
+
+        colNum = rand()%EigenVector.cols();
+        vi = EigenVector.col(colNum);
+        colNum = rand()%EigenVector.cols();
+        vj = EigenVector.col(colNum);
+
+        float result = (vj.transpose() * symmetricMatrixB * vj)(0, 0);
+        if(result < 0) //to fin nan result
+            result = result * (-1);
+        float sqrtResult = sqrt(result);
         sqrtResult = 1.0 /sqrtResult;
-        //cout<<"Square Root : "<<sqrtResult<<endl;
-        //double demoInverse = 1.0 / sqrtResult;
-        //yj = vj * demoInverse ;
-        MatrixXd yj;
-        yj = vj * sqrtResult;
-        //cout<<"yj\n"<<yj<<endl;
+        MatrixXf yj;
+        yj = vj / sqrtResult;
         rewCala= vi.transpose() * symmetricMatrixB * vi;
         rewa=rewCala(0,0);
         rewCalaR=symmetricMatrixA * vi;
@@ -151,15 +118,16 @@ for (int j = 0; j < T; j++) {  // loop to T
         rewResl=rewCalaR * rewa;
         rewResR=rewCalbR * rewb;
         Reward=rewResl - rewResR;
-        //cout<<"Reward:\n"<<Reward<<endl;
-        while(j < i){  
-            MatrixXd PenARes , PenBRes , diffRes;
-            MatrixXd Penalties(3,1);
-            Penalties << 0,0,0;
-            MatrixXd PenA , PenB , PenC , PenVecA , PenVecB;
+        if(j < i){
+            MatrixXf PenARes , PenBRes , diffRes;
+            MatrixXf Penalties(n,1) ;
+            for(int row=0;  row<n; row++){
+                Penalties(row , 0) = 0;
+            }
+            float PenAScal, PenBScal , PenCScal;
+            MatrixXf PenA , PenB , PenC , PenVecA , PenVecB;
             PenA = vi.transpose() * symmetricMatrixA * yj;
             PenAScal=PenA(0,0);
-            //cout<<"PenA : "<<PenA<<endl;
             PenB = vi.transpose() * symmetricMatrixB * vi ;
             PenBScal = PenB(0,0);
             PenC = vi.transpose() * symmetricMatrixB * yj ;
@@ -170,24 +138,20 @@ for (int j = 0; j < T; j++) {  // loop to T
             PenBRes = PenCScal * PenVecB;
             diffRes = PenARes - PenBRes;
             Penalties = Penalties + (PenAScal * diffRes);
-            //cout<<"Penalties \n"<<Penalties<<endl;
-            MatrixXd delta(3,1);
+            MatrixXf delta(n,1);
             delta = Reward - Penalties;
-            MatrixXd itadelta(3,1);
+            MatrixXf itadelta(n,1);
             itadelta = -2 * delta;
-            MatrixXd wi(3,1);
+            MatrixXf wi(n,1);
             wi = vi + itadelta;
-            //cout<<"wi\n"<<wi<<endl;
             vi = normalizeVector(wi);
-            //cout<<"New Vi\n"<<vi <<endl;
             insertColumnMatrix(FinalEigenVector , vi);
-            }
-        }
-    }
+         }
+     }
+ }
     deleteColumn(FinalEigenVector , 0);
-    //cout<<"Final Eigen Vector:\n"<<FinalEigenVector<<endl;
-    
-    MatrixXd EigenValues = eigenValues(FinalEigenVector);
-    //cout<<"Eigen Values Matrix : \n"<<EigenValues<<endl;
+    cout<<"Final Eigen Vector:\n"<<FinalEigenVector<<endl;
+    MatrixXf EigenValues = eigenValues(FinalEigenVector);
+    cout<<"Eigen Values Matrix : \n"<<EigenValues<<endl;
     return 0;
 }
