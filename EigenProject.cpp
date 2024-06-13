@@ -24,7 +24,7 @@ MatrixXf makeSymmetric(const MatrixXf& A) {
 }
 MatrixXf normalizeVector(const MatrixXf& vect) {
     MatrixXf normalizedVector = vect;
-    float maxElement = vect.maxCoeff();
+    float maxElement = vect.cwiseAbs().maxCoeff();
     for (int i = 0; i < vect.size(); ++i) {
         normalizedVector(i) /= maxElement;
     }
@@ -61,8 +61,6 @@ int main(){
     randomMatrixA = randomMatrixA.array().abs(); // Ensure positive values
     randomMatrixB.setRandom(n,n);
     randomMatrixB = randomMatrixB.array().abs(); // Ensure positive values
-    //cout<<"MAtrix A:\n"<<randomMatrixA<<endl;
-    //cout<<"Matrix B:\n"<<randomMatrixB<<endl;
     MatrixXf symmetricMatrixA = makeSymmetric(randomMatrixA);
     MatrixXf symmetricMatrixB = makeSymmetric(randomMatrixB);
     cout << "Symmetric Matrix A:\n" << symmetricMatrixA << endl;
@@ -78,13 +76,24 @@ int main(){
     eigenVectMatA=eigenValueSolverA.eigenvectors();
     eigenVectMatB=eigenValueSolverB.eigenvectors();
 
+    MatrixXf eigVectRealA = eigenVectMatA.real();
+    MatrixXf eigVectRealB = eigenVectMatB.real();
+
     MatrixXf EigenVector(n,1);
-    insertColumnMatrix(EigenVector , eigenVectMatA.real());
-    insertColumnMatrix(EigenVector , eigenVectMatB.real());
-    deleteColumn(EigenVector , 0);
-    for (int column = 0; column < EigenVector.cols(); ++column) {
-        EigenVector.col(column) = normalizeVector(EigenVector.col(column));
+    MatrixXf temp;
+    for(int i=0; i<eigVectRealA.cols(); i++){
+        temp = normalizeVector(eigVectRealA.col(i));
+        insertColumnMatrix(EigenVector , temp);
+        deleteColumn(temp , 0);
     }
+    for(int i=0; i<eigVectRealB.cols(); i++){
+        temp = normalizeVector(eigVectRealB.col(i));
+        insertColumnMatrix(EigenVector , temp);
+        deleteColumn(temp , 0);
+    }
+    deleteColumn(EigenVector , 0);
+   cout<<"Normalized Eigen Vector\n"<<EigenVector<<endl;
+
 
     int T=3;  //just for checking otherwise set vale to 10001
     MatrixXf Reward;
