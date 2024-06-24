@@ -6,10 +6,12 @@ using namespace Eigen;
 using namespace std;
 
 int main() {
-    MatrixXf A(3, 3);
-    A << 4, 1, 1,
-         1, 2, 3,
-         1, 3, 10;
-    displyMatrix(A);
+    int n = 5;
+    MatrixXf matrixA , matrixB;
+    matrixA.setRandom(n,n);
+    matrixA = matrixA.array().abs(); // Ensure positive values
+    matrixB.setRandom(n,n);
+    matrixB = matrixB.array().abs(); // Ensure positive values
+    solveEigenGame(matrixA, matrixB, n);
     return 0;
 }
