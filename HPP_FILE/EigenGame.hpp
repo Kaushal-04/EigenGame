@@ -109,14 +109,15 @@ void solveEigenGame(MatrixXf& Arand , MatrixXf& Brand , int n){
         rewResl=rewCalaR * rewa;
         rewResR=rewCalbR * rewb;
         Reward=rewResl - rewResR;
-        if(j < i){
-            MatrixXf PenARes , PenBRes , diffRes;
-            MatrixXf Penalties(n,1) ;
-            for(int row=0;  row<n; row++){
-                Penalties(row , 0) = 0;
-            }
-            float PenAScal, PenBScal , PenCScal;
-            MatrixXf PenA , PenB , PenC , PenVecA , PenVecB;
+        int tempj = j;
+        MatrixXf PenARes , PenBRes , diffRes;
+        MatrixXf Penalties(n,1) ;
+        for(int row=0;  row<n; row++){
+            Penalties(row , 0) = 0;
+        }
+        float PenAScal, PenBScal , PenCScal;
+        MatrixXf PenA , PenB , PenC , PenVecA , PenVecB;
+        while(tempj < i){
             PenA = vi.transpose() * A * yj;
             PenAScal=PenA(0,0);
             PenB = vi.transpose() * B * vi ;
@@ -137,6 +138,7 @@ void solveEigenGame(MatrixXf& Arand , MatrixXf& Brand , int n){
             wi = vi + itadelta;
             vi = normalizeVector(wi);
             insertColumnMatrix(finalEigVect , vi);
+            tempj++;
          }
      }
  }
