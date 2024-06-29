@@ -12,9 +12,7 @@
 #include <ctime>   // For time()
 using namespace std;
 using namespace Eigen;
-MatrixXf makeSymmetric(const MatrixXf& A) {
-    return 0.5 * (A + A.transpose());
-}
+
 MatrixXf normalizeVector(const MatrixXf& vect) {
     MatrixXf normalizedVector = vect;
     float maxElement = vect.cwiseAbs().maxCoeff();
@@ -41,15 +39,9 @@ void deleteColumn(MatrixXf& matrix, int columnIndex) {
     }
     matrix.conservativeResize(matrix.rows(), matrix.cols() - 1);
 }
-MatrixXf eigenValues(const MatrixXf& eigenvectors) {
-    SelfAdjointEigenSolver<MatrixXf> solver(eigenvectors.transpose() * eigenvectors);
-    return solver.eigenvalues();
-}
-void solveEigenGame(MatrixXf& Arand , MatrixXf& Brand , int n){
+MatrixXf solveEigenGame(MatrixXf& A , MatrixXf& B , int n){
     srand(time(0));
     MatrixXf finalEigVect(n,1);
-    MatrixXf A = makeSymmetric(Arand);
-    MatrixXf B = makeSymmetric(Brand);
           // Eigenvalue and Eigenvector Computation: The GeneralizedEigenSolver class in Eigen is used
           // to solve the generalized eigenvalue problem Ax=λBx. The .compute(A, B) method computes the 
           // eigenvalues and eigenvectors.
@@ -61,10 +53,6 @@ void solveEigenGame(MatrixXf& Arand , MatrixXf& Brand , int n){
             eigenvectors(i, j) *= -1;
         }
     }
-
-    // cout << "Eigenvalues: \n" << eigenvalues << endl;
-    // cout << "Eigenvectors: \n" << eigenvectors << endl;
-
     MatrixXf EigenVector(n,1);
     MatrixXf temp;
     for(int i=0; i<eigenvectors.cols(); i++){
@@ -73,9 +61,6 @@ void solveEigenGame(MatrixXf& Arand , MatrixXf& Brand , int n){
         deleteColumn(temp , 0);
     }
     deleteColumn(EigenVector , 0);
-
-    // cout<<"Normalized Eigen Vector\n"<<EigenVector<<endl;
-
 
     int T=3;  //just for checking otherwise set vale to 10001
     MatrixXf Reward;
@@ -87,7 +72,6 @@ void solveEigenGame(MatrixXf& Arand , MatrixXf& Brand , int n){
     MatrixXf vi , vj;
  for (int j = 0; j < T; j++) { //T
      for (int i = 0; i < n; i++) {  //n or k
-
         colNum = rand()%EigenVector.cols();
         vi = EigenVector.col(colNum);
         colNum = rand()%EigenVector.cols();
@@ -143,10 +127,6 @@ void solveEigenGame(MatrixXf& Arand , MatrixXf& Brand , int n){
      }
  }
     deleteColumn(finalEigVect , 0);
-    cout<<"Final Eigen Vector:\n"<<finalEigVect<<endl;
-    MatrixXf EigenValues = eigenValues(finalEigVect);
-    cout<<"Eigen Values Matrix : \n"<<EigenValues<<endl;
+    return finalEigVect;
 }
-
-
 #endif // EIGENGAME_HPP
